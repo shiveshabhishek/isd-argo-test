@@ -1,0 +1,71 @@
+---
+# Source: isdargo/charts/minio/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: isdargo-minio
+  labels:
+    app: minio
+    chart: minio-8.0.9
+    release: isdargo
+    heritage: Helm
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: minio
+      release: isdargo
+  template:
+    metadata:
+      name: isdargo-minio
+      labels:
+        app: minio
+        release: isdargo
+      annotations:
+        checksum/secrets: 21141365b62507d596efde0f13ce669e661f3e9efd11c46a6f5aed32b6bda578
+        checksum/config: d3b877f27d04bced1d3f8fe537f8d5894e8f021af2d36445664a8298a1661920
+    spec:
+      serviceAccountName: "isdargo-minio"
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: minio
+          image: "quay.io/opsmxpublic/minio:RELEASE.2020-01-03T19-12-21Z"
+          imagePullPolicy: IfNotPresent
+          command:
+            - "/bin/sh"
+            - "-ce"
+            - "/usr/bin/docker-entrypoint.sh minio -S /etc/minio/certs/ server /export"
+          volumeMounts:
+            - name: export
+              mountPath: /export            
+          ports:
+            - name: http
+              containerPort: 9000
+          env:
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: isdargo-minio
+                  key: accesskey
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: isdargo-minio
+                  key: secretkey
+          resources:
+            requests:
+              memory: 4Gi      
+      volumes:
+        - name: export
+          persistentVolumeClaim:
+            claimName: isdargo-minio
+        - name: minio-user
+          secret:
+            secretName: isdargo-minio
