@@ -22,7 +22,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: isd-argo-pod-reader
-  namespace: isd-argo
+  namespace: isdargo
 rules:
 - apiGroups: [""]
   resources:
@@ -36,11 +36,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: isd-argo-pod-reader-binding
-  namespace: isd-argo
+  namespace: isdargo
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: isd-argo
+  namespace: isdargo
 roleRef:
   kind: Role
   name: isd-argo-pod-reader
