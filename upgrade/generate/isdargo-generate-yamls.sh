@@ -77,6 +77,7 @@ if [ -z "$checkbranch" ]; then
    git config --global user.email "${gitemail}"
    git config --global user.name "${username}"
    git commit -m "Manifest file dir of helm chart with ISDARGO ${version}"
+   git remote set-url origin https://"$username":"$(cat /secrets/gittoken)"@"$url"
    git push origin "$version"
    if [ $? -eq 0 ]; then
      echo "#######################Sucessfully pushed helm template to github#################################"
