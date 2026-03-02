@@ -15,7 +15,9 @@ spec:
               set +x
 
               source /repo/environment
-
+              
+              source /secrets/gittoken
+              
               rm -rf /repo/environment
 
               chmod +x /repo/upgrade/generate/isdargo-generate-yamls.sh
