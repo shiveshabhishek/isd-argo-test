@@ -1,8 +1,8 @@
 apiVersion: v1
 data:
   url: github.com/shiveshabhishek/isd-argo-test ## e.g github.com/opsmx/gitops-repo, url without the leading "https://", the "git-repo" in the documentation
-  username: shiveshabhishek
-  gitemail: shivesh.abhishek@opsmx.io
+  username: yugaa22
+  gitemail: yugaa22@gmail.com
 
   #####################################################################################################
   # Typically, there is no need to change the values below this line, please check the "nameaspace"
