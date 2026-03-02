@@ -104,6 +104,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: upgrade-inputcm
+            - secretRef:
+                name: aws-creds
           image: 'quay.io/opsmxpublic/opsmx-custom-binaries:aws-jq-git-bash'
           name: git-clone
           volumeMounts:
