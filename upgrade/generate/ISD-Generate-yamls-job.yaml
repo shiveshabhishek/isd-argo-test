@@ -39,6 +39,8 @@ spec:
           volumeMounts:
             - mountPath: /repo
               name: repo-volume
+            - mountPath: /secrets
+              name: secret-volume
       initContainers:
         - args:
             - >-
