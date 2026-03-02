@@ -1,0 +1,26 @@
+---
+# Source: isdargo/templates/carina/carina-manager-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: oes
+    component: carina
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+  name: oes-carina
+spec:
+  ports:
+  - name: carina
+    port: 8091
+    protocol: TCP
+    targetPort: 8091
+  - name: carina-rbac
+    port: 8092
+    protocol: TCP
+    targetPort: 8092
+  selector:
+    app: oes
+    component: carina
+  type: ClusterIP

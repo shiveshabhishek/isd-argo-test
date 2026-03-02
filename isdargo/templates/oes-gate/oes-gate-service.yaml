@@ -1,0 +1,28 @@
+---
+# Source: isdargo/templates/oes-gate/oes-gate-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: oes
+    component: gate
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+  name: oes-gate
+spec:
+  type: ClusterIP
+  ports:
+  - name: "https"
+    port: 443
+    targetPort: 8084
+  - name: "oes-gate-service"
+    port: 8084
+    protocol: TCP
+    targetPort: 8084
+  - name: "http"
+    port: 80
+    targetPort: 8084
+  selector:
+    app: oes
+    component: gate

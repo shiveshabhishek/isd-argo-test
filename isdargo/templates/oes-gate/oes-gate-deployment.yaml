@@ -1,0 +1,95 @@
+---
+# Source: isdargo/templates/oes-gate/oes-gate-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+  labels:
+    app: oes
+    component: gate
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+  name: oes-gate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oes
+      component: gate
+  template:
+    metadata:
+      annotations:
+        checksum/secret: 250ec2541075ae5802227b57143b71f9279c3f349b6245d36f54208c0d4d93f7
+        prometheus.io/scrape: "false"
+        prometheus_io_path: /mgmt/prometheus
+        prometheus_io_port: "8084"
+      labels:
+        app: oes
+        component: gate
+        heritage: "Helm"
+        release: "isdargo"
+        chart: "isdargo-4.1.11"
+    spec:
+      containers:
+      - image: quay.io/opsmxpublic/ubi8-oes-gate:isd-argo-2026.02.00-rc1-2f794ffe-202602161145
+        name: oes-gate
+        env:
+        - name: spring_profiles_active
+          value: vault,local
+        - name: JAVA_OPTS
+          value: -Xmx512m
+        ports:
+        - containerPort: 8084
+          protocol: TCP
+        resources:
+            {}
+        volumeMounts:
+        - name: gate-volume
+          mountPath: /opt/spinnaker/config/gate.yml
+          subPath: gate.yml
+        - mountPath: /opt/spinnaker/config/bootstrap.yml
+          name: bootstrap-volume
+          subPath: bootstrap.yml
+        - mountPath: /opt/spinnaker/config/feature.yml
+          name: isd-feature-flag-conf
+          subPath: feature.yml
+        - mountPath: /opt/saml/certs
+          name: samlcerts
+          readOnly: true
+        readinessProbe:
+          tcpSocket:
+            port: 8084
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8084
+          initialDelaySeconds: 60
+          periodSeconds: 60
+      volumes:
+      - name: samlcerts
+        secret:
+          secretName: samlcerts
+          items:
+            - key: key.pem
+              path: key.pem
+            - key: cert.pem
+              path: cert.pem
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: feature.yml
+            path: feature.yml
+          name: isd-feature-flag-config
+        name: isd-feature-flag-conf
+      - name: gate-volume
+        secret:
+          secretName: oes-gate-config
+      - secret:
+          items:
+          - key: bootstrap.yml
+            path: bootstrap.yml
+          secretName: bootstrap
+        name: bootstrap-volume

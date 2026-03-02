@@ -1,0 +1,42 @@
+---
+# Source: isdargo/templates/rabbitmq/oes-rabbitmq-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: oes
+    component: rabbitmq
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+  name: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oes
+      component: rabbitmq
+  template:
+    metadata:
+      annotations:
+      labels:
+        app: oes
+        component: rabbitmq
+        heritage: "Helm"
+        release: "isdargo"
+        chart: "isdargo-4.1.11"
+    spec:
+      containers:
+      - image: quay.io/opsmxpublic/rabbitmq:3.11.4-management
+        imagePullPolicy: IfNotPresent
+        name: rabbitmq
+        env:
+        - name: JAVA_OPTS
+          value: -Xmx512m
+        ports:
+        - containerPort: 5672
+          protocol: TCP
+        resources: {}
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 1000

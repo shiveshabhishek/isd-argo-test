@@ -1,0 +1,27 @@
+---
+# Source: isdargo/templates/ingress/controller-ingress.yml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/issuer: letsencrypt-isdargo-oes
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: GRPC
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+  name: controller-ingress
+spec:
+  rules:
+  - host: isd-argotest-controller.cdaas.opsmx.org
+    http:
+      paths:
+      - backend:
+          service:
+            name: agent-grpc
+            port:
+              number: 9001
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - isd-argotest-controller.cdaas.opsmx.org
+    secretName: controller-ingress

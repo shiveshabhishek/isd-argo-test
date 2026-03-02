@@ -1,0 +1,22 @@
+---
+# Source: isdargo/templates/oes-platform/oes-platform-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: oes
+    component: platform
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+  name: oes-platform
+spec:
+  type: ClusterIP
+  ports:
+  - name: oes-platform
+    protocol: TCP
+    port: 8095
+    targetPort: 8095
+  selector:
+    app: oes
+    component: platform
