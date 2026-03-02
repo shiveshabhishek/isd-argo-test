@@ -1,0 +1,116 @@
+---
+# Source: isdargo/templates/oes-autopilot/oes-autopilot-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+  name: oes-autopilot
+  labels:
+    app: oes
+    component: autopilot
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oes
+      component: autopilot
+  template:
+    metadata:
+      labels:
+        app: oes
+        component: autopilot
+        heritage: "Helm"
+        release: "isdargo"
+        chart: "isdargo-4.1.11"
+      annotations:
+        configmap/checksum: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+        prometheus.io/scrape: "true"
+        prometheus_io_path: /mgmt/prometheus
+        prometheus_io_port: "8090"
+    spec:
+      volumes:
+        - name: certs-volume
+          secret:
+            defaultMode: 420
+            secretName: oes-control-secret
+        - name: ca-certs-volume
+          secret:
+            defaultMode: 420
+            secretName: ca-secret
+        - name: autopilot-config-volume
+          secret:
+            secretName: oes-autopilot-config
+        - secret:
+            items:
+            - key: bootstrap.yml
+              path: bootstrap.yml
+            secretName: bootstrap
+          name: bootstrap-config-volume
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: standard-error-codes.csv
+              path: standard-error-codes.csv
+            name: standard-error-codes-config
+          name: standard-error-conf
+      initContainers:
+      - name: db-check
+        image: quay.io/opsmxpublic/pgchecker:v1
+        command:
+          - sh
+          - -c
+          - |
+            echo 'Waiting for OES-DB to become ready...'
+            until printf "." && nc -z -w 2 oes-db 5432; do
+               sleep 2;
+            done;
+            echo 'OESDB OK ✓'
+      containers:
+      - image: quay.io/opsmxpublic/ubi8-oes-autopilot:isd-argo-2025.08.00-9fbe0bbd3-202507291258
+        imagePullPolicy: IfNotPresent
+        name: oes-autopilot
+        env:
+        - name: JAVA_OPTS
+          value: -Xmx512m
+        resources:
+            {}
+        ports:
+        - containerPort: 8090
+          name: backend
+          protocol: TCP
+        - containerPort: 9090
+          name: metricfetcher
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /opsmx/conf/controller/ca.crt
+          name: ca-certs-volume
+          subPath: tls.crt
+        - mountPath: /opsmx/conf/controller/tls.crt
+          name: certs-volume
+          subPath: tls.crt
+        - mountPath: /opsmx/conf/controller/tls.key
+          name: certs-volume
+          subPath: tls.key
+        - name: autopilot-config-volume
+          mountPath: /opsmx/conf/autopilot.properties
+          subPath: autopilot.properties
+        - mountPath: /opsmx/conf/bootstrap.yml
+          name: bootstrap-config-volume
+          subPath: bootstrap.yml
+        - mountPath: /opsmx/conf/standard-error-code.csv
+          name: standard-error-conf
+          subPath: standard-error-codes.csv
+        readinessProbe:
+          tcpSocket:
+            port: 8090
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /mgmt/health
+            port: 8090
+          initialDelaySeconds: 120
+          periodSeconds: 60

@@ -1,0 +1,68 @@
+---
+# Source: isdargo/templates/vela/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: oes
+    component: vela
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+  name: vela
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oes
+      component: vela
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: oes
+        component: vela
+        heritage: "Helm"
+        release: "isdargo"
+        chart: "isdargo-4.1.11"
+      annotations:
+        checksum/secret: fa77d4655bcffb32ab94bf13b9e5b4d822b310356ef02be6aa32395c4c95cc7e
+    spec:
+      volumes:
+      - name: vela-volume
+        configMap:
+          name: vela-config
+          items:
+            - key: vela-api.yaml
+              path: vela-api.yaml
+          defaultMode: 420
+      - name: gate-volume
+        secret:
+          secretName: oes-gate-config
+          defaultMode: 420
+      containers:
+      - image: quay.io/opsmxpublic/vela-ssd:4ikgec-223
+        imagePullPolicy: IfNotPresent
+        name: vela
+        ports:
+        - containerPort: 8092
+          protocol: TCP
+        volumeMounts:
+          - name: vela-volume
+            mountPath: /app/config/vela-api.yaml
+            subPath: vela-api.yaml
+          - name: gate-volume
+            mountPath: /opt/spinnaker/config/gate.yml
+            subPath: gate.yml
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
