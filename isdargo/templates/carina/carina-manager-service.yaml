@@ -23,4 +23,4 @@ spec:
   selector:
     app: oes
     component: carina
-  type: LoadBalancer
+  type: ClusterIP

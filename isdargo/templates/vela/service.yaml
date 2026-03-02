@@ -19,4 +19,4 @@ spec:
   selector:
     app: oes
     component: vela
-  type: LoadBalancer
+  type: ClusterIP

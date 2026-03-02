@@ -11,7 +11,7 @@ metadata:
     chart: "isdargo-4.1.11"
   name: oes-gate
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
   - name: "https"
     port: 443

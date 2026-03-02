@@ -19,4 +19,4 @@ spec:
   selector:
     app: oes
     component: datascience
-  type: LoadBalancer
+  type: ClusterIP

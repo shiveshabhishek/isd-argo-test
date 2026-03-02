@@ -19,4 +19,4 @@ spec:
   selector:
     app: oes
     component: auditclient
-  type: LoadBalancer
+  type: ClusterIP
