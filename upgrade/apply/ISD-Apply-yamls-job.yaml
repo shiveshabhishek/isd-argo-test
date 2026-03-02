@@ -1,0 +1,120 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: isdargo-yaml-update
+  annotations:
+     argocd.argoproj.io/sync-options: Replace=true
+  labels:
+    app: isdargo
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+
+      containers:
+        - args:
+            - |-
+            
+              for env in $( echo $envs | tr "," "\n" )
+              do
+              echo export $env >> /tmp/environment
+              done
+
+              for filename in /secret/*
+
+              do
+
+              variable=$(echo $filename | sed 's#/# #g' | awk '{print $2}')
+
+              echo setting env $variable for $filename
+
+              echo "export $variable=$(cat "$filename")" >> /tmp/environment
+
+              done
+
+              source /tmp/environment >/dev/null 2>&1
+
+              cd /repo/
+
+              export version="$version"
+
+              chmod +x /repo/upgrade/apply/isdargo-apply-yamls.sh
+
+              /repo/upgrade/apply/isdargo-apply-yamls.sh
+
+          command:
+            - /bin/bash
+            - +x
+            - '-c'
+          envFrom:
+            - configMapRef:
+                name: upgrade-inputcm
+
+          image: 'quay.io/opsmxpublic/helm-bash:v4'
+          name: script
+          volumeMounts:
+            - mountPath: /repo
+              name: repo-volume
+            - mountPath: /secrets
+              name: secret-volume
+      initContainers:
+        - args:
+            - >-
+               aws secretsmanager get-secret-value --secret-id isdsecrets --query SecretString --output text | tr -d '\n' > /tmp/secret.json
+               
+                for secret in $(echo $secrets | sed "s/,/ /g")
+    
+                  do
+    
+                    echo getting $secret
+      
+                    jq -r .$secret /tmp/secret.json > /secrets/"$secret"
+      
+                    ls -ltr /secrets/"$secret"
+    
+                done
+  
+                chmod 0400 /secrets/*
+              
+  
+                 ls -ltr /secrets/gittoken || { echo "failed cloning $url" ; exit 1; }
+                
+                 export branch="$branch"
+  
+                 git clone https://"$username":"$(cat /secrets/gittoken)"@"$url" -b "$branch" /repo
+  
+                 echo "export version=$version" >> /repo/environment
+  
+                  if [ $? != 0 ]
+    
+                  then
+      
+                      exit 1
+      
+                    else
+      
+                      ls -lrt /repo # Show the files cloned, as a success marker
+    
+                  fi
+
+          command:
+            - /bin/bash
+            - +x
+            - '-c'
+          envFrom:
+            - configMapRef:
+                name: upgrade-inputcm
+          image: 'quay.io/opsmxpublic/opsmx-custom-binaries:aws-jq-git-bash'
+          name: git-clone
+          volumeMounts:
+            - mountPath: /repo
+              name: repo-volume
+            - mountPath: /secrets
+              name: secret-volume
+      restartPolicy: Never
+      serviceAccountName: isd-install
+      volumes:
+        - emptyDir: {}
+          name: secret-volume
+        - emptyDir: {}
+          name: repo-volume

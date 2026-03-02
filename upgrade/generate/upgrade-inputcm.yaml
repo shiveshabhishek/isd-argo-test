@@ -1,0 +1,19 @@
+apiVersion: v1
+data:
+  url: github.com/shiveshabhishek/isd-argo-test ## e.g github.com/opsmx/gitops-repo, url without the leading "https://", the "git-repo" in the documentation
+  username: shiveshabhishek
+  gitemail: shivesh.abhishek@opsmx.io
+
+  #####################################################################################################
+  # Typically, there is no need to change the values below this line, please check the "nameaspace"
+  #####################################################################################################
+  branch: main         # Gitrepo branch, MUST be the default branch
+  version: 4.1.11   # Helm Chart Version
+  namespace: isdargo # Namespace to install ISD, best not to change
+  release: isdargo
+  secretname: isdsecrets
+  secrets: gittoken,saporgateusername,saporgateadmingroup,saporgatepassword,ldappassword,dbusername,dbpassword,jasencryptkey,rabbitmqpassword,redispassword,miniopassword,ldapconfigpassword
+
+kind: ConfigMap
+metadata:
+  name: upgrade-inputcm
