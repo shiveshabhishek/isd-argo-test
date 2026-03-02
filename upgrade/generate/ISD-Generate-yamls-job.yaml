@@ -16,8 +16,6 @@ spec:
 
               source /repo/environment
               
-              source /secrets/gittoken
-              
               rm -rf /repo/environment
 
               chmod +x /repo/upgrade/generate/isdargo-generate-yamls.sh
@@ -41,8 +39,6 @@ spec:
           volumeMounts:
             - mountPath: /repo
               name: repo-volume
-            - mountPath: /secrets
-              name: secret-volume
       initContainers:
         - args:
             - >-
@@ -50,7 +46,7 @@ spec:
               aws secretsmanager get-secret-value --secret-id isdsecrets --query SecretString --output text > /tmp/secret.json
               
               jq -r .gittoken /tmp/secret.json > /secrets/gittoken
-
+              
               git clone https://"$username":"$(cat /secrets/gittoken)"@"$url" -b "$branch" /repo
                
               echo "export namespace=$namespace" > /repo/environment
@@ -67,6 +63,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: upgrade-inputcm
+            - secretRef:
+                name: aws-creds
           image: quay.io/opsmxpublic/opsmx-custom-binaries:aws-jq-git-bash
           name: git-clone
           volumeMounts:
