@@ -52,8 +52,8 @@ sed -i 's/{{ .Values.saporgate.config.password }}/encrypted:saporpassword:saporp
 #helm template ${release} /repo/isdargo -f values.yaml --output-dir=/tmp/isdargo
 helm template ${release} /repo/isdargo -f /repo/values/isdargo/values-overrides.yaml --output-dir=/tmp/isdargo
 
-sed -i '/spec:/,/type:/ s/type: .*/type: LoadBalancer/' /tmp/isdargo/templates/oes-ui/oes-ui-service.yaml
-sed -i '/spec:/,/type:/ s/type: .*/type: LoadBalancer/' /tmp/isdargo/templates/vela/service.yaml
+sed -i '/spec:/,/type:/ s/type: .*/type: LoadBalancer/' /tmp/isdargo/isdargo/templates/oes-ui/oes-ui-service.yaml
+sed -i '/spec:/,/type:/ s/type: .*/type: LoadBalancer/' /tmp/isdargo/isdargo/templates/vela/service.yaml
 
 if [ $? -eq 0 ]; then
      echo "#################################Helm template is sucessfull into  isdargo directory#################################"
