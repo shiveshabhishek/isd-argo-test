@@ -3,7 +3,7 @@
 # After installation, the DNS must be updated to point this to EXTERNAL-IP of the agent-grpc service
 # kubectl get svc -n opsmx-isd agent-grpc
 ###################################
-k8sServiceType: LoadBalancer
+k8sServiceType: ClusterIP
 
 forwarder:
   enabled: true
