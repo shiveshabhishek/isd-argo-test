@@ -1,0 +1,18 @@
+---
+# Source: isdargo/templates/vela/vela-configmap.yaml
+apiVersion: v1
+data:
+  vela-api.yaml: |
+    httpListenPort: 8092
+    carinaHost: http://oes-carina:8091/
+    rbacHost: http://oes-carina:8092/
+    
+kind: ConfigMap
+metadata:
+  name: vela-config
+  labels:
+    app: oes
+    component: vela
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"

@@ -1,0 +1,131 @@
+---
+# Source: isdargo/templates/oes-gate/oes-gate-configmap.yaml
+apiVersion: v1
+stringData:
+  gate.yml: |
+    retrofit:
+      connectTimeout: 60000
+      readTimeout: 60000
+      callTimeout: 60000
+      writeTimeout: 60000
+      retryOnConnectionFailure: true
+    services:
+      opsmx:
+        baseUrl: http://oes-sapor:8085
+        enabled: true
+      autopilot:
+        baseUrl: http://oes-autopilot:8090
+        enabled: true
+      platform:
+        baseUrl: http://oes-platform:8095
+        userGroupApiPath: /platformservice/v1/users/{username}/usergroups/importAndCache
+        enabled: true
+      dashboard:
+        baseUrl: http://oes-dashboard:8094
+        enabled: true
+      visibility:
+        baseUrl: http://oes-visibility:8096
+        enabled: true
+      auditservice:
+         baseUrl: "http://oes-audit-service:8097"
+         enabled: true
+      auditclient:
+         baseUrl: "http://oes-audit-client:8098"
+         enabled: true
+      oesui:
+        externalUrl: /ui/
+      fiat:
+        enabled: false
+    cors:
+      allowed-origins-pattern: ^https?://(?:localhost|isd-argotest.cdaas.opsmx.org|opsmx.com)(?::[1-9]\d*)?/?
+    ldap:
+      enabled: false
+    security:
+      basic:
+        enabled: true
+    spring:
+      security:
+        saml2:
+          enabled: true
+          registration-id: SSO
+          relyingparty:
+            registration:
+              SSO:
+                acs:
+                  location: https://isd-argotest.cdaas.opsmx.org/saml/SSO
+                assertingparty:
+                  metadata-uri: https://integrator-2160818.okta.com/app/exk10j02dmsSPioen698/sso/saml/metadata
+                decryption:
+                  credentials:
+                  - certificate-location: file:/opt/saml/certs/cert.pem
+                    private-key-location: file:/opt/saml/certs/key.pem
+                  singlesignon.sign-request: true
+                entity-id: isdargo-test
+                singlesignon.sign-request: true
+          signatureDigest: SHA256
+          user-attribute-mapping:
+            email: email
+            firstName: firstName
+            lastName: lastName
+            roles:
+              attributeName: memberOf
+              forceLowercaseRoles: true
+              rolesDelimiter: ','
+              sortRoles: true
+          userSource: gate
+    file:
+      enabled: false
+      url: /platformservice/v1/users/authenticate
+    authn:
+      mode: session
+    google: {}
+    redis:
+      connection: redis://:password@isdargo-redis-master:6379
+    server:
+      session:
+        timeoutInSeconds: 7200
+      tomcat:
+        httpsServerPort: X-Forwarded-Port
+        internalProxies: .*
+        protocolHeader: X-Forwarded-Proto
+        remoteIpHeader: X-Forwarded-For
+    gate:
+      installation:
+        mode: oes
+    rbac:
+      feature:
+        application:
+          enabled: false
+    
+    security:
+      contentSecurityPolicy: "object-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' https: http:;"
+    
+    allowUnauthenticatedAccess:
+      agentAPI: false
+      webhooks: true
+    
+    jwt:
+      secret: YXJnb19uYXZpcw==
+      token:
+        durationInSeconds: 36000
+    vela:
+      bounceUrl: https://isd.vela-isd-argotest.cdaas.opsmx.org/bounce
+    
+    logging:
+      level:
+        com.netflix.spinnaker.gate.security: INFO
+        org.springframework.security: INFO
+        org.springframework.web: INFO
+        #com.netflix.spinnaker.gate.security: DEBUG
+        #org.springframework.security: DEBUG
+        #org.springframework.web: DEBUG
+    
+kind: Secret
+metadata:
+  name: oes-gate-config
+  labels:
+    app: oes
+    component: gate
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"

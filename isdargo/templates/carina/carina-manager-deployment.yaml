@@ -1,0 +1,89 @@
+---
+# Source: isdargo/templates/carina/carina-manager-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: oes
+    component: carina
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+  name: oes-carina
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oes
+      component: carina
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: oes
+        component: carina
+        heritage: "Helm"
+        release: "isdargo"
+        chart: "isdargo-4.1.11"
+      annotations:
+        checksum/secret: 78848be629a1e6098ad9a2c6f374f25a30d37fc9fe86428f53d9be054b4634c5
+    spec:
+      initContainers:
+      - name: platform-check
+        image: quay.io/opsmxpublic/pgchecker:v1
+        command:
+          - sh
+          - -c
+          - |
+            echo 'Waiting for OES-PLATFORM to become ready...'
+            until printf "." && nc -z -w 2 oes-platform 8095; do
+               sleep 2;
+            done;
+            echo 'OES PLATFORM is OK ✓'
+      containers:
+      - image: quay.io/opsmxpublic/carina-manager:isd-argo-2026.02.00-efd3f42-20260216
+        imagePullPolicy: IfNotPresent
+        name: oes-carina
+        ports:
+        - containerPort: 8090
+          protocol: TCP
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /app/secrets/controller-ca.crt
+          name: ca-certs-volume
+          subPath: tls.crt
+        - mountPath: /app/secrets/controller-control/tls.crt
+          name: certs-volume
+          subPath: tls.crt
+        - mountPath: /app/secrets/controller-control/tls.key
+          name: certs-volume
+          subPath: tls.key
+        - mountPath: /app/config/carina-manager.yaml
+          name: carina-volume
+          subPath: carina-manager.yaml
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: certs-volume
+        secret:
+          defaultMode: 420
+          secretName: oes-control-secret
+      - name: ca-certs-volume
+        secret:
+          defaultMode: 420
+          secretName: ca-secret
+      - secret:
+          items:
+          - key: carina-manager.yaml
+            path: carina-manager.yaml
+          secretName: oes-carina-config
+        name: carina-volume

@@ -1,0 +1,18 @@
+---
+# Source: isdargo/templates/opa/opa-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: opa
+  labels:
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+spec:
+  selector:
+    app: opa
+  ports:
+  - protocol: TCP
+    port: 8181
+    targetPort: 8181
+  type: ClusterIP

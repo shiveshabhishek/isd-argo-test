@@ -1,0 +1,17 @@
+---
+# Source: isdargo/templates/ingress/clusterissuer.yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-isdargo-argocd
+spec:
+  acme:
+    email: srinivas@opsmx.io
+    preferredChain: ""
+    privateKeySecretRef:
+      name: demo-authtls
+    server: https://acme-v02.api.letsencrypt.org/directory
+    solvers:
+    - http01:
+        ingress:
+          class: nginx

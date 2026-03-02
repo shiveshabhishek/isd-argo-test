@@ -1,0 +1,14 @@
+---
+# Source: isdargo/templates/configmaps/isd-feature-flag-config.yml
+apiVersion: v1
+data:
+  feature.yml: |
+     feature:
+       auth-provider:
+         flag: false
+         jira: OP-18050
+kind: ConfigMap
+metadata:
+  labels:
+    app: oes
+  name: isd-feature-flag-config
