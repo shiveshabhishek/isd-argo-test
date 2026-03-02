@@ -3,12 +3,14 @@
 # After installation, the DNS must be updated to point this to EXTERNAL-IP of the agent-grpc service
 # kubectl get svc -n opsmx-isd agent-grpc
 ###################################
+k8sServiceType: LoadBalancer
+
 forwarder:
   enabled: true
   agent:
-    serviceType: ClusterIP
+    serviceType: LoadBalancer
     # Value is also used in sapor configuration for kubernetes.agent.serverHostName
-    host: isd-argotest-controller.cdaas.opsmx.org
+    host: isd-argotest-controller.opsmx.org
     ingress:
       annotations:
         kubernetes.io/ingress.class: nginx
@@ -16,7 +18,7 @@ forwarder:
         secretName: controller-ingress
   image:
     repository: quay.io/opsmxpublic/agent-controller
-    tag: v5.1.4
+    tag: v5.1.2
     pullPolicy: IfNotPresent
   serverNames:
     - agent-grpc
@@ -27,52 +29,85 @@ minio:
   enabled: true
   image:
     repository: quay.io/opsmxpublic/minio
-    tag: RELEASE.2020-12-03T05-49-24Z
+    tag: RELEASE.2020-01-03T19-12-21Z
+  mcImage:
+    repository: quay.io/opsmxpublic/minio-mc
+    tag: RELEASE.2020-11-25T23-04-07Z
+
 
 
 global:
+  createIngress: false
   installOpenLdap: false
-  ldap:
-    enabled: false
   oesUI:
-    host: isd-argotest.cdaas.opsmx.org
+    # Please below string for all occurences in this file with proper dns entry to access the ISD UI eg: isdui.example.ops.com
+    host: isd-argotest.opsmx.org
 
   vela:
-    host: vela-isd-argotest.cdaas.opsmx.org
+    # Please below string for all occurences in this file with proper dns entry to access the ISD UI eg: keycloak.example.ops.com$
+    host: vela-isd-argotest.opsmx.org
 
+  redis:
+    password: encrypted:isdsecrets:redispassword
+    
+  minio:
+    accessKey: encrypted:isdsecrets:miniopassword
+    secretKey: encrypted:isdsecrets:miniopassword 
+
+    ## Valid admin details for ISD authorization
   saporgate:
     config:
-      username: admin
-      adminGroups: admin
+      username: encrypted:isdsecrets:saporgateusername     #Name of the valid user in your service provider
+      adminGroups: encrypted:isdsecrets:saporgateadmingroup    #Name of the valid admin group in your service provider
+      password: encrypted:isdsecrets:saporgatepassword  #password for the saporgate
+
+  ldap:
+    enabled: false
+
+#######################################################################################################################
 
 opa:
   enabled: true
   image:
     repository: quay.io/opsmxpublic/opa
     tag: 1.6.0
+    pullPolicy: IfNotPresent
 
-#######################################################################################################################
+  
 # Values of OES Database
 db:
+  ## Set it to false if any external database is to be used
   enabled: true
   url: jdbc:postgresql://oes-db:5432
-  username: postgres
-  password: networks123
-
+  username: encrypted:isdsecrets:dbusername
+  password: encrypted:isdsecrets:dbpassword
+  
+rabbitmq:
+  username: rabbitmq
+  password: encrypted:isdsecrets:rabbitmqpassword
+redis:
+ # url: redis://:encrypted:redispassword:redispassword@{{ .Release.Name }}-redis-master
+  password: encrypted:isdsecrets:redispassword
 ###############################################################################
 ## Values of OEA Sapor (Security Audit Policy Onboarding & Release)
 sapor:
+  ## Image specific details
   image:
     repository: ubi8-oes-sapor
-    tag: isd-argo-2026.02.00-rc1-7c86a18e-202602161146
+    tag: 5f20a05f-202510241504     ## isd-argo-2025.08.00-368fa618-202507291259
     pullPolicy: IfNotPresent
+  config:
+   encrypt: 
+     key: encrypted:isdsecrets:jasencryptkey
 
 ##################################################################################################################
 # Values of Carina Manager
 carinamanager:
+  ## Image specific details
+  ##
   image:
     repository: carina-manager
-    tag: isd-argo-2026.02.00-efd3f42-20260216
+    tag: isd-argo-2025.11.00-efd3f42-20251224
     pullPolicy: IfNotPresent
 
 #######################################################################################################################
@@ -86,131 +121,153 @@ carinainstance:
 # Values of Vela
 vela:
   image:
-    repository: ubi8-oes-vela-api
-    tag: isd-argo-2026.02.00-ad1b472-202602161255-rc1
-    pullPolicy: IfNotPresent
+    repository: vela-ssd
+    tag: 4ikgec-223
+    pullPolicy: IfNotPresent    
 
 ## Values of OEA UI
 ui:
+  ## Image specific details
   image:
     repository: ubi8-oes-ui
-    tag: isd-argo-2026.02.00-rc2-672a932-202602130621
+    tag: 69255768f-202601220630 # changes by Nagendra
     pullPolicy: IfNotPresent
 
 ## Values of OEA Autopilot
+##
 autopilot:
+  ## Image specific details
   image:
     repository: ubi8-oes-autopilot
-    tag: isd-argo-2026.02.00-rc1-9c787fe71-202602161143
+    tag: isd-argo-2025.08.00-9fbe0bbd3-202507291258
     pullPolicy: IfNotPresent
 
 ## Values of OEA auditservice
+##
 audit:
+  ## Image specific details
+  ##
   image:
     repository: ubi8-oes-audit-service
-    tag: isd-argo-2026.02.00-rc1-c10d688-202602161209
+    tag: a859a64-202601211243               ## 2bcacdd-202512021251
     pullPolicy: IfNotPresent
 
 ## Values of OEA auditclient
+##
 auditClient:
+  ## Image specific details
+  ##
   image:
     repository: ubi8-oes-audit-client
-    tag: isd-argo-2026.02.00-rc1-527e248-202602161143
+    tag: 4de6f3b-202509241254
     pullPolicy: IfNotPresent
 
 ## Values of OEA datascience
+##
 datascience:
+  ## Image specific details
+  ##
   image:
     repository: ubi8-oes-datascience
-    tag: isd-argo-2026.02.00-rc1-9c787fe71-202602161143
+    tag: isd-argo-2025.08.00-9fbe0bbd3-202507291303
     pullPolicy: IfNotPresent
 
 ## Values of OEA Dashboard
 dashboard:
+  ## Image specific details
   image:
     repository: ubi8-oes-dashboard
-    tag: isd-argo-2026.02.00-rc1-8b55eaa-202602161145
+    tag: isd-argo-2025.08.00-294af4e-202507291259
     pullPolicy: IfNotPresent
 
 ## Values of OEA Gate
+##
 gate:
+  ## Image specific details
   image:
-    repository: ubi8-oes-gate
-    tag: isd-argo-2026.02.00-rc1-2f794ffe-202602161145
+    repository: ubi8-gate
+    tag: 82596051-202601060752
     pullPolicy: IfNotPresent
-
-  volumes:
-    - name: samlcerts
-      secret:
-        defaultMode: 420
-        secretName: samlcerts
-        items:
-          - key: key.pem
-            path: key.pem
-          - key: cert.pem
-            path: cert.pem
-
-  volumeMounts:
-    - name: samlcerts
-      mountPath: /opt/saml/certs
-      readOnly: true
-
   config:
+    #####################################################
+    # SAML AUthentication
+    #####################################################
+    # openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out cert.pem
+    # kubectl create secret generic samlcerts --from-file key.pem --from-file cert.pem -n namespace
+    # security:
+    #   user:
+    #     name: admin
+    #     password: saporadmin
+    
     spring:
       security:
         saml2:
           enabled: true
-          registration-id: SSO
+          registration-id: SSO #change this to the application name in OKTA
           relyingparty:
             registration:
-              SSO:
-                entity-id: isdargo-test
+              SSO:   #change this to the application name in OKTA
+                entity-id: azure-isd #change this to the Okta SP entity id
                 acs:
-                  location: https://isd-argotest.cdaas.opsmx.org/saml/SSO
+                  location: https://isd-argotest.opsmx.org/saml/SSO
                 assertingparty:
-                  metadata-uri: https://integrator-2160818.okta.com/app/exk10j02dmsSPioen698/sso/saml/metadata
-                decryption:
+                  metadata-uri: https://dev-80355908.okta.com/app/exkk1qik37OLXxTVk5d7/sso/saml/metadata
+                decryption: 
                   credentials:
-                    - private-key-location: file:/opt/saml/certs/key.pem
+                    - private-key-location: file:/opt/saml/certs/key.pem  
                       certificate-location: file:/opt/saml/certs/cert.pem
-                singlesignon.sign-request: true
+                  singlesignon.sign-request: true
           user-attribute-mapping:
             firstName: firstName
             lastName: lastName
             roles:
-              attributeName: memberOf
+              attributeName: memberOf  # Update attributeName here
               sortRoles: true
               forceLowercaseRoles: true
-              rolesDelimiter: ','
+              rolesDelimiter: ","
             email: email
           signatureDigest: SHA256
           userSource: gate
 
 ## Values of OEA Platform
 platform:
+  ## Image specific details
   image:
     repository: ubi8-oes-platform
-    tag: isd-argo-2026.02.00-rc1-18f713b8-202602161142
-    pullPolicy: IfNotPresent
+    tag: 9ec51b1f-202601210823
+    pullPolicy: IfNotPresent    
 
 ## Values of OEA Visibility
 visibility:
+  ## Image specific details
   image:
     repository: ubi8-oes-visibility
-    tag: isd-argo-2026.02.00-rc1-75c3182-202602161141
+    tag: isd-argo-2025.08.00-b2c8eb0-202507291259
     pullPolicy: IfNotPresent
 
 notificationservice:
+  ## Image specific details
+  ##
   image:
     repository: ubi8-oes-notification-service
-    tag: isd-argo-2026.02.00-rc1-9d9ba0b-202602161146
+    tag: isd-argo-e54887d-202512120744  # notification + Metrics
     pullPolicy: IfNotPresent
   host: smtp.gmail.com
   port: 587
+  username: REPLACE.YOUR.MAIL.ID
+  password: REPLACE.YOUR.MAIL.PASSWORD   
+  
+
+
+  
 
 #####User doesn't need to change the below flags let it be the default one######################
 installArgoCD: false
+######################################################################################
 installArgoRollouts: false
+#######################################################################################
 installdemoapps: false
+#######################################################################################
 autoconfigureagent: false
+#######################################################################################
 installkeycloak: false
