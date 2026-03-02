@@ -1,0 +1,216 @@
+##### This file can be used for Installing Only ISD Components ###############################
+# Update the controller URL which needs to be reachable from other clusters where ArgoCD is running
+# After installation, the DNS must be updated to point this to EXTERNAL-IP of the agent-grpc service
+# kubectl get svc -n opsmx-isd agent-grpc
+###################################
+forwarder:
+  enabled: true
+  agent:
+    serviceType: ClusterIP
+    # Value is also used in sapor configuration for kubernetes.agent.serverHostName
+    host: isd-argotest-controller.cdaas.opsmx.org
+    ingress:
+      annotations:
+        kubernetes.io/ingress.class: nginx
+      tls:
+        secretName: controller-ingress
+  image:
+    repository: quay.io/opsmxpublic/agent-controller
+    tag: v5.1.4
+    pullPolicy: IfNotPresent
+  serverNames:
+    - agent-grpc
+
+  serviceAnnotations: {}
+
+minio:
+  enabled: true
+  image:
+    repository: quay.io/opsmxpublic/minio
+    tag: RELEASE.2020-12-03T05-49-24Z
+
+
+global:
+  installOpenLdap: false
+  ldap:
+    enabled: false
+  oesUI:
+    host: isd-argotest.cdaas.opsmx.org
+
+  vela:
+    host: vela-isd-argotest.cdaas.opsmx.org
+
+  saporgate:
+    config:
+      username: admin
+      adminGroups: admin
+
+opa:
+  enabled: true
+  image:
+    repository: quay.io/opsmxpublic/opa
+    tag: 1.6.0
+
+#######################################################################################################################
+# Values of OES Database
+db:
+  enabled: true
+  url: jdbc:postgresql://oes-db:5432
+  username: postgres
+  password: networks123
+
+###############################################################################
+## Values of OEA Sapor (Security Audit Policy Onboarding & Release)
+sapor:
+  image:
+    repository: ubi8-oes-sapor
+    tag: isd-argo-2026.02.00-rc1-7c86a18e-202602161146
+    pullPolicy: IfNotPresent
+
+##################################################################################################################
+# Values of Carina Manager
+carinamanager:
+  image:
+    repository: carina-manager
+    tag: isd-argo-2026.02.00-efd3f42-20260216
+    pullPolicy: IfNotPresent
+
+#######################################################################################################################
+# Values of Carina Instance
+carinainstance:
+  image:
+    repository: carina-instance
+    tag: v1.14.1
+    pullPolicy: IfNotPresent
+
+# Values of Vela
+vela:
+  image:
+    repository: ubi8-oes-vela-api
+    tag: isd-argo-2026.02.00-ad1b472-202602161255-rc1
+    pullPolicy: IfNotPresent
+
+## Values of OEA UI
+ui:
+  image:
+    repository: ubi8-oes-ui
+    tag: isd-argo-2026.02.00-rc2-672a932-202602130621
+    pullPolicy: IfNotPresent
+
+## Values of OEA Autopilot
+autopilot:
+  image:
+    repository: ubi8-oes-autopilot
+    tag: isd-argo-2026.02.00-rc1-9c787fe71-202602161143
+    pullPolicy: IfNotPresent
+
+## Values of OEA auditservice
+audit:
+  image:
+    repository: ubi8-oes-audit-service
+    tag: isd-argo-2026.02.00-rc1-c10d688-202602161209
+    pullPolicy: IfNotPresent
+
+## Values of OEA auditclient
+auditClient:
+  image:
+    repository: ubi8-oes-audit-client
+    tag: isd-argo-2026.02.00-rc1-527e248-202602161143
+    pullPolicy: IfNotPresent
+
+## Values of OEA datascience
+datascience:
+  image:
+    repository: ubi8-oes-datascience
+    tag: isd-argo-2026.02.00-rc1-9c787fe71-202602161143
+    pullPolicy: IfNotPresent
+
+## Values of OEA Dashboard
+dashboard:
+  image:
+    repository: ubi8-oes-dashboard
+    tag: isd-argo-2026.02.00-rc1-8b55eaa-202602161145
+    pullPolicy: IfNotPresent
+
+## Values of OEA Gate
+gate:
+  image:
+    repository: ubi8-oes-gate
+    tag: isd-argo-2026.02.00-rc1-2f794ffe-202602161145
+    pullPolicy: IfNotPresent
+
+  volumes:
+    - name: samlcerts
+      secret:
+        defaultMode: 420
+        secretName: samlcerts
+        items:
+          - key: key.pem
+            path: key.pem
+          - key: cert.pem
+            path: cert.pem
+
+  volumeMounts:
+    - name: samlcerts
+      mountPath: /opt/saml/certs
+      readOnly: true
+
+  config:
+    spring:
+      security:
+        saml2:
+          enabled: true
+          registration-id: SSO
+          relyingparty:
+            registration:
+              SSO:
+                entity-id: isdargo-test
+                acs:
+                  location: https://isd-argotest.cdaas.opsmx.org/saml/SSO
+                assertingparty:
+                  metadata-uri: https://integrator-2160818.okta.com/app/exk10j02dmsSPioen698/sso/saml/metadata
+                decryption:
+                  credentials:
+                    - private-key-location: file:/opt/saml/certs/key.pem
+                      certificate-location: file:/opt/saml/certs/cert.pem
+                singlesignon.sign-request: true
+          user-attribute-mapping:
+            firstName: firstName
+            lastName: lastName
+            roles:
+              attributeName: memberOf
+              sortRoles: true
+              forceLowercaseRoles: true
+              rolesDelimiter: ','
+            email: email
+          signatureDigest: SHA256
+          userSource: gate
+
+## Values of OEA Platform
+platform:
+  image:
+    repository: ubi8-oes-platform
+    tag: isd-argo-2026.02.00-rc1-18f713b8-202602161142
+    pullPolicy: IfNotPresent
+
+## Values of OEA Visibility
+visibility:
+  image:
+    repository: ubi8-oes-visibility
+    tag: isd-argo-2026.02.00-rc1-75c3182-202602161141
+    pullPolicy: IfNotPresent
+
+notificationservice:
+  image:
+    repository: ubi8-oes-notification-service
+    tag: isd-argo-2026.02.00-rc1-9d9ba0b-202602161146
+    pullPolicy: IfNotPresent
+  host: smtp.gmail.com
+  port: 587
+
+#####User doesn't need to change the below flags let it be the default one######################
+installArgoCD: false
+installArgoRollouts: false
+installdemoapps: false
+autoconfigureagent: false
+installkeycloak: false
