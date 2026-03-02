@@ -38,6 +38,8 @@ minio:
 
 global:
   createIngress: false
+  certManager:
+    installed: false
   installOpenLdap: false
   oesUI:
     # Please below string for all occurences in this file with proper dns entry to access the ISD UI eg: isdui.example.ops.com
