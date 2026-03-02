@@ -50,7 +50,7 @@ sed -i 's/^data:/stringData:/' /repo/isdargo/templates/sapor-gate/sapor-gate-sec
 sed -i 's/{{ .Values.saporgate.config.password }}/encrypted:saporpassword:saporpassword/' /repo/isdargo/config/sapor-gate/gate-local.yml
 ####################################################################################################################
 #helm template ${release} /repo/isdargo -f values.yaml --output-dir=/tmp/isdargo
-helm template ${release} /repo/isdargo -f /repo/values/isd-argo/values-overrides.yaml --output-dir=/tmp/isdargo
+helm template ${release} /repo/isdargo -f /repo/values/isdargo/values-overrides.yaml --output-dir=/tmp/isdargo
 
 if [ $? -eq 0 ]; then
      echo "#################################Helm template is sucessfull into  isdargo directory#################################"
