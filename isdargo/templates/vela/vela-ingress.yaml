@@ -1,0 +1,26 @@
+---
+# Source: isdargo/templates/vela/vela-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: nginx
+  name: vela-ingress
+spec:
+  rules:
+  - host: '*.vela-isd-argotest.cdaas.opsmx.org'
+    http:
+      paths:
+      - backend:
+          service:
+            name: vela
+            port:
+              number: 8092
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - '*.vela-isd-argotest.cdaas.opsmx.org'
+    secretName: vela-ingress

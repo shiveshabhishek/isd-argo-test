@@ -1,0 +1,22 @@
+---
+# Source: isdargo/templates/oes-db/oes-db-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: oes
+    component: db
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+  name: oes-db
+spec:
+  type: ClusterIP
+  ports:
+  - name: db
+    protocol: TCP
+    port: 5432
+    targetPort: 5432
+  selector:
+    app: oes
+    component: db

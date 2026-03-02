@@ -1,0 +1,94 @@
+---
+# Source: isdargo/templates/oes-visibility/oes-visibility-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: oes
+    component: visibility
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+  name: oes-visibility
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oes
+      component: visibility
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        configmap/checksum: 4bc045e18dbbf5885e9a3019147085e9e94b6dd4b139aa3f0a8de617afa278ca
+        prometheus.io/scrape: "true"
+        prometheus_io_path: /mgmt/prometheus
+        prometheus_io_port: "8096"
+      labels:
+        app: oes
+        component: visibility
+        heritage: "Helm"
+        release: "isdargo"
+        chart: "isdargo-4.1.11"
+    spec:
+      initContainers:
+      - name: db-check
+        image: quay.io/opsmxpublic/pgchecker:v1
+        command:
+          - sh
+          - -c
+          - |
+            echo 'Waiting for OES-DB to become ready...'
+            until printf "." && nc -z -w 2 oes-db 5432; do
+               sleep 2;
+            done;
+            echo 'OESDB OK ✓'
+      containers:
+      - image: quay.io/opsmxpublic/ubi8-oes-visibility:isd-argo-2026.02.00-rc1-75c3182-202602161141
+        name: oes-visibility
+        env:
+        - name: JAVA_OPTS
+          value: -Xmx512m
+        ports:
+        - containerPort: 8096
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /opsmx/conf/visibility-local.yml
+          name: visibility-config
+          subPath: visibility-local.yml
+        - mountPath: /opsmx/conf/bootstrap.yml
+          name: bootstrap-config-volume
+          subPath: bootstrap.yml
+        - mountPath: /opsmx/conf/standard-error-code.csv
+          name: standard-error-conf
+          subPath: standard-error-codes.csv
+        resources:
+            {}
+        readinessProbe:
+          tcpSocket:
+            port: 8096
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /mgmt/health
+            port: 8096
+          initialDelaySeconds: 30
+          periodSeconds: 60
+      volumes:
+      - name: visibility-config
+        secret:
+          secretName: oes-visibility-config
+      - secret:
+          items:
+          - key: bootstrap.yml
+            path: bootstrap.yml
+          secretName: bootstrap
+        name: bootstrap-config-volume
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: standard-error-codes.csv
+            path: standard-error-codes.csv
+          name: standard-error-codes-config
+        name: standard-error-conf

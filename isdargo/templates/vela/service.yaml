@@ -1,0 +1,22 @@
+---
+# Source: isdargo/templates/vela/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: oes
+    component: vela
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+  name: vela
+spec:
+  ports:
+  - name: vela
+    port: 8092
+    protocol: TCP
+    targetPort: 8092
+  selector:
+    app: oes
+    component: vela
+  type: ClusterIP

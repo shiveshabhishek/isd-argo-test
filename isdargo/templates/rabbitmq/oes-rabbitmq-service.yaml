@@ -1,0 +1,26 @@
+---
+# Source: isdargo/templates/rabbitmq/oes-rabbitmq-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: oes
+    component: rabbitmq
+    heritage: "Helm"
+    release: "isdargo"
+    chart: "isdargo-4.1.11"
+  name: rabbitmq-service
+spec:
+  ports:
+  - name: rabbitmq
+    port: 5672
+    protocol: TCP
+    targetPort: 5672
+  - name: rabbitmq-mgmt
+    port: 15672
+    protocol: TCP
+    targetPort: 15672
+  selector:
+    app: oes
+    component: rabbitmq
+  type: ClusterIP
