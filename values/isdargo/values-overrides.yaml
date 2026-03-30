@@ -266,7 +266,7 @@ notificationservice:
 #####User doesn't need to change the below flags let it be the default one######################
 installArgoCD: false
 ######################################################################################
-installArgoRollouts: false
+installArgoRollouts: true
 #######################################################################################
 installdemoapps: false
 #######################################################################################
