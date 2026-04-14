@@ -1,0 +1,26 @@
+---
+# Source: isdargo/charts/argo-rollouts/templates/dashboard/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: isdargo-argo-rollouts-dashboard
+  labels:
+    app.kubernetes.io/component: rollouts-dashboard
+    helm.sh/chart: argo-rollouts-2.21.1
+    app.kubernetes.io/name: argo-rollouts
+    app.kubernetes.io/instance: isdargo
+    app.kubernetes.io/version: "v1.3.1"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: argo-rollouts
+  annotations:
+spec:
+  type: ClusterIP
+  ports:
+  - name: dashboard
+    protocol: TCP
+    port: 3100
+    targetPort: 3100
+  selector:
+    app.kubernetes.io/component: rollouts-dashboard
+    app.kubernetes.io/name: argo-rollouts
+    app.kubernetes.io/instance: isdargo

@@ -43,7 +43,6 @@ stringData:
     security:
       basic:
         enabled: true
-      contentSecurityPolicy: "object-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' https: http:;"
     spring:
       security:
         saml2:
@@ -96,7 +95,10 @@ stringData:
       feature:
         application:
           enabled: false
-        
+    
+    security:
+      contentSecurityPolicy: "object-src 'none'; script-src 'unsafe-eval' 'unsafe-inline' https: http:;"
+    
     allowUnauthenticatedAccess:
       agentAPI: false
       webhooks: true

@@ -1,0 +1,22 @@
+---
+# Source: isdargo/templates/metricprovider/role.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: opsmx-provider-account-default
+rules:
+  - apiGroups:
+      - "batch"
+    resources:
+      - jobs/status
+    verbs:
+      - get
+      - list
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - list

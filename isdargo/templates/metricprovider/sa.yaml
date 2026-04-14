@@ -1,0 +1,6 @@
+---
+# Source: isdargo/templates/metricprovider/sa.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: opsmx-provider-account-default
