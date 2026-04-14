@@ -1,0 +1,49 @@
+---
+# Source: isdargo/charts/argo-rollouts/templates/dashboard/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: isdargo-argo-rollouts-dashboard
+  labels:
+    app.kubernetes.io/component: rollouts-dashboard
+    helm.sh/chart: argo-rollouts-2.21.1
+    app.kubernetes.io/name: argo-rollouts
+    app.kubernetes.io/instance: isdargo
+    app.kubernetes.io/version: "v1.3.1"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: argo-rollouts
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argo-rollouts
+      app.kubernetes.io/instance: isdargo
+      app.kubernetes.io/component: rollouts-dashboard
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8090"
+        prometheus.io/scrape: "true"
+      labels:
+        app.kubernetes.io/name: argo-rollouts
+        app.kubernetes.io/instance: isdargo
+        app.kubernetes.io/component: rollouts-dashboard
+    spec:
+      serviceAccountName: isdargo-argo-rollouts-dashboard
+      containers:
+      - image: "quay.io/argoproj/kubectl-argo-rollouts:v1.3.1"
+        imagePullPolicy: IfNotPresent
+        args:
+        name: argo-rollouts-dashboard
+        ports:
+        - containerPort: 3100
+          name: dashboard
+        securityContext:
+          {}
+        resources:
+          {}
+      securityContext:
+        runAsNonRoot: true
